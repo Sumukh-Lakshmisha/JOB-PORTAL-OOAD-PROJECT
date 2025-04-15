@@ -1,0 +1,8 @@
+com\jobconnect\controller\HomeController.class
+com\jobconnect\controller\AuthController.class
+com\jobconnect\config\EncoderConfig.class
+com\jobconnect\model\User.class
+com\jobconnect\JobConnectApplication.class
+com\jobconnect\config\SecurityConfig.class
+com\jobconnect\repository\UserRepository.class
+com\jobconnect\service\UserService.class
