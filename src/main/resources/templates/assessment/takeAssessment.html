@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Take Assessment</title>
+    <link rel="stylesheet" th:href="@{/takeAssessment.css}">
+
+</head>
+<body>
+    <h2 th:text="'Assessment: ' + ${assessment.title}"></h2>
+    <form th:action="@{/assessment/submitAssessment}" method="post">
+        <input type="hidden" name="title" th:value="${assessment.title}" />
+
+        <div th:each="question, iterStat : ${assessment.questions}">
+            <p>
+                <strong th:text="'Q' + ${iterStat.index + 1} + ': ' + ${question.question}"></strong>
+            </p>
+            <div th:each="option, optIndex : ${question.options}">
+                <label>
+                    <input type="radio" th:name="'q' + ${iterStat.index}" th:value="${optIndex.index}" />
+                    <span th:text="${option}"></span>
+                </label><br/>
+            </div>
+            <br/>
+        </div>
+
+        <button type="submit">Submit Assessment</button>
+    </form>
+</body>
+</html>

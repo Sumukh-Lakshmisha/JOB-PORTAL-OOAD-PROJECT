@@ -1,0 +1,73 @@
+:root {
+    --primary: #2563eb;
+    --primary-dark: #1d4ed8;
+    --light: #f9fafb;
+    --dark: #1f2937;
+    --gray-light: #e5e7eb;
+    --success: #10b981;
+    --danger: #ef4444;
+}
+
+body {
+    background-color: var(--light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: var(--dark);
+    margin: 0;
+    padding: 2rem;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    background-color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+h2 {
+    text-align: center;
+    color: var(--primary-dark);
+    margin-bottom: 1.5rem;
+}
+
+p, label {
+    font-size: 1.1rem;
+    margin: 0.5rem 0;
+}
+
+form {
+    margin-top: 1.5rem;
+}
+
+input[type="radio"] {
+    margin-right: 0.5rem;
+    accent-color: var(--primary);
+}
+
+button[type="submit"] {
+    background-color: var(--primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: block;
+    margin: 2rem auto 0;
+    transition: background-color 0.3s;
+}
+
+button[type="submit"]:hover {
+    background-color: var(--primary-dark);
+}
+
+.result-info {
+    text-align: center;
+    font-size: 1.2rem;
+}
+
+.result-info span {
+    font-weight: bold;
+    color: var(--primary-dark);
+}

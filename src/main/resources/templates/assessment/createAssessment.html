@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+        <title>Create Assessment</title>
+        <link rel="stylesheet" th:href="@{/assessment.css}" />
+    </head>
+<body>
+
+  <h1>Create Assessment</h1>
+
+  <form id="setup-form">
+    <label>Test Title: <input type="text" id="test-title" required /></label><br/><br/>
+    <label>Number of Questions: <input type="number" id="num-questions" min="1" required /></label><br/><br/>
+    <button type="submit">Create Questions</button>
+  </form>
+
+  <form id="question-form" style="display: none;">
+    <div id="questions-container"></div>
+    <button type="submit" class="submit-btn">Submit Test</button>
+  </form>
+
+  <script>
+    const setupForm = document.getElementById('setup-form');
+    const questionForm = document.getElementById('question-form');
+    const questionsContainer = document.getElementById('questions-container');
+
+    setupForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = document.getElementById('test-title').value;
+      const numQuestions = parseInt(document.getElementById('num-questions').value);
+      setupForm.style.display = 'none';
+      questionForm.style.display = 'block';
+
+      for (let i = 0; i < numQuestions; i++) {
+        const qBlock = document.createElement('div');
+        qBlock.className = 'question-block';
+
+        qBlock.innerHTML = ` 
+          <label>Question ${i + 1}:</label><br/>
+          <textarea name="questionText" rows="2" cols="60" required></textarea><br/><br/>
+          ${[0,1,2,3].map(j => `
+            <div class="option-input">
+              <input type="text" name="option${j}" placeholder="Option ${j + 1}" required />
+              <label><input type="radio" name="correct${i}" value="${j}" required /> Correct</label>
+            </div>
+          `).join('')}
+        `;
+        questionsContainer.appendChild(qBlock);
+      }
+    });
+
+    questionForm.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const testTitle = document.getElementById('test-title').value;
+      const questionBlocks = document.querySelectorAll('.question-block');
+      const testData = {
+        title: testTitle,
+        questions: []
+      };
+
+      questionBlocks.forEach((block, index) => {
+        const questionText = block.querySelector('textarea').value;
+        const options = [...block.querySelectorAll('input[type="text"]')].map(input => input.value);
+        const correctIndex = block.querySelector(`input[type="radio"]:checked`).value;
+
+        testData.questions.push({
+          question: questionText,
+          options,
+          correctIndex: parseInt(correctIndex)
+        });
+      });
+
+      fetch('/assessment/createassessment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(testData)
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to create assessment');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log('Assessment created successfully:', data);
+        alert("Assessment Created Successfully!");
+        location.reload();
+      })
+      .catch(error => {
+        console.error('Error creating assessment:', error);
+        alert("Failed to create assessment. Please try again.");
+      });
+    });
+  </script>
+
+</body>
+</html>

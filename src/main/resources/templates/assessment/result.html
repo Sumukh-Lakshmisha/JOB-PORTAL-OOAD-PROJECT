@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Assessment Result</title>
+    <link rel="stylesheet" th:href="@{/takeAssessment.css}">
+</head>
+<body>
+    <h2>Assessment Result</h2>
+    <p><strong>Correct Answers:</strong> <span th:text="${correct}"></span></p>
+    <p><strong>Wrong Answers:</strong> <span th:text="${wrong}"></span></p>
+    <p><strong>Not Attempted:</strong> <span th:text="${notAttempted}"></span></p>
+</body>
+</html>

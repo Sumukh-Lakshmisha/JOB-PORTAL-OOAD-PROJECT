@@ -25,29 +25,29 @@ public class SecurityConfig {
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(userService);
-        auth.setPasswordEncoder(passwordEncoder); // ✅ now correctly injected
+        auth.setUserDetailsService(userService);  // Inject the UserService for user validation
+        auth.setPasswordEncoder(passwordEncoder); // Inject the PasswordEncoder for password hashing
         return auth;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authorize -> authorize
-                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**").permitAll()
-                .anyRequest().authenticated()
+            .csrf(csrf -> csrf.disable())  // Temporarily disabling CSRF for this example (be mindful in production)
+            .authorizeHttpRequests(authorizeRequests -> authorizeRequests
+                .requestMatchers("/", "/auth/**", "/css/**", "/js/**", "/images/**", "/assessment/**").permitAll()  // Permit these paths
+                .anyRequest().authenticated()  // All other requests need authentication
             )
-            .formLogin(form -> form
-                .loginPage("/auth/login")
-                .defaultSuccessUrl("/", true)
-                .permitAll()
+            .formLogin(formLogin -> formLogin
+                .loginPage("/auth/login")  // Custom login page URL
+                .defaultSuccessUrl("/", true)  // Redirect to home page after login
+                .permitAll()  // Allow everyone to access the login page
             )
             .logout(logout -> logout
-                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
-                .logoutSuccessUrl("/auth/login?logout")
-                .permitAll()
+                .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))  // Logout path
+                .logoutSuccessUrl("/auth/login?logout")  // Redirect to login after logout
+                .permitAll()  // Allow everyone to log out
             );
-
         return http.build();
     }
 }
