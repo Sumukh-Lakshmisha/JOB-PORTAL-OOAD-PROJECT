@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Notifications - JobConnect</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notification-card {
+            border-left: 4px solid transparent;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .notification-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .notification-card.unread {
+            border-left-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        .notification-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .notification-time {
+            font-size: 0.8em;
+            color: #6c757d;
+        }
+        .notification-message {
+            margin-bottom: 10px;
+        }
+        .notification-action {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        .notification-icon {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 40px;
+            margin-right: 15px;
+            color: white;
+        }
+        .icon-post {
+            background-color: #198754;
+        }
+        .icon-like {
+            background-color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: header}"></div>
+    
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2>My Notifications</h2>
+                    <div>
+                        <button id="mark-all-read" class="btn btn-outline-secondary me-2">
+                            <i class="fas fa-check-double"></i> Mark All as Read
+                        </button>
+                        <a href="/communities" class="btn btn-outline-primary">
+                            <i class="fas fa-arrow-left"></i> Back to Communities
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Display notifications -->
+                <div th:if="${notifications != null && !notifications.isEmpty()}">
+                    <div th:each="notification : ${notifications}" th:id="'notification-' + ${notification.id}"
+                         th:class="${notification.read ? 'notification-card' : 'notification-card unread'}">
+                        <div class="notification-header">
+                            <div class="d-flex align-items-center">
+                                <div th:if="${notification.type == 'NEW_POST'}" class="notification-icon icon-post">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div th:if="${notification.type == 'NEW_LIKE'}" class="notification-icon icon-like">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                                <h5 class="mb-0" th:text="${notification.message}">
+                                    Notification message
+                                </h5>
+                                <span th:if="${!notification.read}" class="ms-2 badge bg-primary">New</span>
+                            </div>
+                            <span class="notification-time" th:text="${#temporals.format(notification.createdAt, 'dd MMM yyyy HH:mm')}">
+                                Time
+                            </span>
+                        </div>
+                        <div class="notification-action">
+                            <div>
+                                <!-- Updated links to use the new dedicated endpoint -->
+                                <a th:href="@{/notifications/view/{id}(id=${notification.id})}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i th:if="${notification.sourceType == 'POST'}" class="fas fa-eye"></i>
+                                    <i th:if="${notification.sourceType == 'COMMUNITY'}" class="fas fa-users"></i>
+                                    <span th:if="${notification.sourceType == 'POST'}">View Post</span>
+                                    <span th:if="${notification.sourceType == 'COMMUNITY'}">View Community</span>
+                                </a>
+                            </div>
+                            <button th:if="${!notification.read}" th:attr="data-id=${notification.id}"
+                                    class="btn btn-sm btn-outline-secondary mark-read-btn">
+                                <i class="fas fa-check"></i> Mark as Read
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty state when no notifications -->
+                <div th:if="${notifications == null || notifications.isEmpty()}" class="empty-state">
+                    <i class="fas fa-bell-slash fa-3x mb-3 text-muted"></i>
+                    <h4>No notifications yet</h4>
+                    <p>When you receive notifications from communities and posts, they will appear here.</p>
+                    <a href="/communities" class="btn btn-primary mt-3">
+                        Explore Communities
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div th:replace="~{fragments/footer :: footer}"></div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Mark single notification as read
+            $('.mark-read-btn').click(function() {
+                const notificationId = $(this).data('id');
+                const csrfToken = $("meta[name='_csrf']").attr("content");
+                const csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                
+                $.ajax({
+                    url: '/notifications/read/' + notificationId,
+                    type: 'POST',
+                    beforeSend: function(xhr) {
+                        if(csrfHeader && csrfToken) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    },
+                    success: function() {
+                        $('#notification-' + notificationId).removeClass('unread');
+                        $('#notification-' + notificationId + ' .badge').remove();
+                        $('#notification-' + notificationId + ' .mark-read-btn').remove();
+                    }
+                });
+            });
+            
+            // Mark all notifications as read
+            $('#mark-all-read').click(function() {
+                const csrfToken = $("meta[name='_csrf']").attr("content");
+                const csrfHeader = $("meta[name='_csrf_header']").attr("content");
+                
+                $.ajax({
+                    url: '/notifications/read-all',
+                    type: 'POST',
+                    beforeSend: function(xhr) {
+                        if(csrfHeader && csrfToken) {
+                            xhr.setRequestHeader(csrfHeader, csrfToken);
+                        }
+                    },
+                    success: function() {
+                        $('.notification-card').removeClass('unread');
+                        $('.notification-card .badge').remove();
+                        $('.mark-read-btn').remove();
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
